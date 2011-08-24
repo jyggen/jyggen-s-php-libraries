@@ -1,30 +1,72 @@
-<?php class Database extends PDO {
-	protected static $instance;
-	public $connections = 0;
-	private $cache;
-	public $cached = 0;
-	public $queries = 0;
+<?php
+class Database extends PDO {
+
+	private $cache       = false;
+	public  $cached      = 0;
+	public  $connections = 0;
+	static  $conn_key    = false;
+	static  $settings    = array();
+	static  $instance    = false;
+	public  $queries     = 0;
+
 	public function __construct() {
+
 		try {
-			parent::__construct('mysql:dbname=' . 
-DB_DATABASE . ';host=' . DB_HOSTNAME . ';charset=UTF-8', DB_USERNAME, 
-DB_PASSWORD, array(
-				PDO::MYSQL_ATTR_INIT_COMMAND => 'SET 
-NAMES utf8'
+			
+			$dsn = 'mysql:dbname=' . self::$settings['database'] . ';host=' . self::$settings['hostname'] . ';charset=UTF-8;';
+			
+			parent::__construct($dsn, self::$settings['username'], self::$settings['password'], array(
+				PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
 			));
+		
 		} catch (PDOException $e) {
+
 			trigger_error($e->getMessage(), E_USER_ERROR);
+			exit(1);
+
 		}
+
 		$this->cache = new Memcache;
-		$this->cache->connect('localhost', 11211) or 
-trigger_error('Couldn\'t connect to Cache Server.', E_USER_ERROR);
+		$this->cache->connect('localhost', 11211) or trigger_error('Couldn\'t connect to Cache Server.', E_USER_ERROR);
 		$this->connections++;
+
 	}
+
 	public static function getInstance() {
-        if(!self::$instance)
-			self::$instance = new self();
-        return self::$instance;
+		
+		if(!empty(self::$settings)) {
+			if(array_key_exists('database', self::$settings) &&
+			   array_key_exists('hostname', self::$settings) &&
+			   array_key_exists('username', self::$settings) &&
+			   array_key_exists('password', self::$settings)) {
+				
+				$key = md5(serialize(self::$settings));
+				
+				if(!self::$instance || $key != self::$conn_key) {
+					
+					self::$conn_key = $key;
+					self::$instance = new self();
+					
+				}
+				
+				return self::$instance;
+				
+			} else {
+			
+				trigger_error('Missing connection settings', E_USER_ERROR);
+				exit(1);
+			
+			}
+			
+		} else {
+		
+			trigger_error('Missing connection settings', E_USER_ERROR);
+			exit(1);
+
+		}
+
     }
+
 	public function flush($delay = 0) {
 		$this->cache->flush($delay);
 	}
