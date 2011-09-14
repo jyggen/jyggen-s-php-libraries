@@ -12,13 +12,13 @@ class Database extends PDO {
 	public function __construct() {
 
 		try {
-			
+
 			$dsn = 'mysql:dbname=' . self::$settings['database'] . ';host=' . self::$settings['hostname'] . ';charset=UTF-8;';
-			
+
 			parent::__construct($dsn, self::$settings['username'], self::$settings['password'], array(
 				PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
 			));
-		
+
 		} catch (PDOException $e) {
 
 			trigger_error($e->getMessage(), E_USER_ERROR);
@@ -33,33 +33,33 @@ class Database extends PDO {
 	}
 
 	public static function getInstance() {
-		
+
 		if(!empty(self::$settings)) {
 			if(array_key_exists('database', self::$settings) &&
 			   array_key_exists('hostname', self::$settings) &&
 			   array_key_exists('username', self::$settings) &&
 			   array_key_exists('password', self::$settings)) {
-				
+
 				$key = md5(serialize(self::$settings));
-				
+
 				if(!self::$instance || $key != self::$conn_key) {
-					
+
 					self::$conn_key = $key;
 					self::$instance = new self();
-					
+
 				}
-				
+
 				return self::$instance;
-				
+
 			} else {
-			
+
 				trigger_error('Missing connection settings', E_USER_ERROR);
 				exit(1);
-			
+
 			}
-			
+
 		} else {
-		
+
 			trigger_error('Missing connection settings', E_USER_ERROR);
 			exit(1);
 
@@ -68,53 +68,73 @@ class Database extends PDO {
     }
 
 	public function flush($delay = 0) {
-		$this->cache->flush($delay);
+
+		return $this->cache->flush($delay);
+
 	}
+
 	public function cacheExists($key) {
-		return ($cache = $this->cache->get($key)) ? true : 
-false;
+
+		return (!($result = $this->cache->get($key, MEMCACHE_COMPRESSED))) ? false : true;
+
 	}
+
 	public function load($key) {
+
 		$this->cached++;
-		return $this->cache->get($key);
+		return unserialize(gzinflate($this->cache->get($key, MEMCACHE_COMPRESSED)));
+
 	}
+
 	public function save($key, $data, $ttl = 0) {
-		$this->cache->set($key, $data, $ttl);
+
+		$data = serialize($data);
+		$data = gzdeflate($data, 9);
+
+		if(!$this->cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl)) {
+
+			trigger_error('Could not cache ' . $key, E_USER_ERROR);
+			exit(1);
+
+		} else return true;
+
 	}
-	public function query($sql, $parameters=array(), $return=false, 
-$ttl=300) {
-		
+
+	public function query($sql, $parameters=array(), $return = false, $ttl=300) {
+
 		$this->queries++;
-		
-		$cache_id = md5(json_encode(array('query' => $sql, 
-'parameters' => $parameters)));
-		$cache = $this->cache->get($cache_id);
-		
-		if($return === false || $cache === false) {
-			$sth = parent::prepare($sql);
-			if($sth) {
+		$cache_id = md5(json_encode(array('query' => $sql, 'parameters' => $parameters)));
+
+		if($return === false || !$this->cacheExists($cache_id)) {
+
+			if($sth = parent::prepare($sql)) {
+
 				if(!$sth->execute($parameters))
 					$this->error($sth->errorInfo());
+
 				if($return === true) {
-					$data = (substr($sql, -7) == 
-'LIMIT 1')
-							? 
-$sth->fetch(parent::FETCH_ASSOC)
-							: $sth->fetchAll(parent::FETCH_ASSOC);
+
+					$data = (substr($sql, -7) == 'LIMIT 1')
+						? $sth->fetch(parent::FETCH_ASSOC)
+						: $sth->fetchAll(parent::FETCH_ASSOC);
+
 					if($ttl !== false)
-						$this->cache->set($cache_id, 
-$data, $ttl);
+						$this->save($cache_id, $data, $ttl);
+
 				}
-				return ($return === true) ? $data : 
-true;
+
+				return ($return === true) ? $data : true;
+
 			} else $this->error(parent::errorInfo());
+
 		} elseif($return === true) {
-			$this->cached++;
-			return $cache;
-		} else {
-			return false;
-		}
+
+			return $this->load($cache_id);
+
+		} else return false;
+
 	}
+
 	public function update($table, $params, $where) {
 		$sql = 'UPDATE `' . $table . '` SET' . "\n";
 		foreach($params as $k => $v)
@@ -162,8 +182,12 @@ true;
 		$num = $this->count($table, $params);
 		return ($num != 0) ? true : false;
 	}
+
 	private function error($info) {
+
 		trigger_error($info[2], E_USER_ERROR);
-		exit();
+		exit(1);
+
 	}
+
 }
