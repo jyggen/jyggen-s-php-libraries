@@ -101,7 +101,9 @@ class Database extends PDO {
 	}
 
 	public function query($sql, $parameters=array(), $return = false, $ttl=300) {
-
+		
+		$sql = trim($sql);
+		
 		$this->queries++;
 		$cache_id = md5(json_encode(array('query' => $sql, 'parameters' => $parameters)));
 
@@ -136,51 +138,80 @@ class Database extends PDO {
 	}
 
 	public function update($table, $params, $where) {
+
 		$sql = 'UPDATE `' . $table . '` SET' . "\n";
+
 		foreach($params as $k => $v)
 			$sql .= '`' . $k . '` = ?,' . "\n";
-		$sql = substr($sql, 0, -2);
+
+		$sql  = substr($sql, 0, -2);
 		$sql .= "\n" . 'WHERE ';
+
 		foreach($where as $k => $v)
 			$sql .= '`' . $k . '` = ? AND' . "\n";
-		$sql = substr($sql, 0, -5);
-		$sql .= "\n" . 'LIMIT 1';
-		$temp = $params;
+
+		$sql    = substr($sql, 0, -5);
+		$sql   .= "\n" . 'LIMIT 1';
+		$temp   = $params;
 		$params = array();
+
 		foreach($temp as $v)
 			$params[] = $v;
-		$temp = array_merge($params, $where);
+
+		$temp   = array_merge($params, $where);
 		$params = array();
+
 		foreach($temp as $v)
 			$params[] = $v;
+
 		$this->query($sql, $params);
+
 	}
+
 	public function count($table, $params = array()) {
+
 		$sql = 'SELECT COUNT(*) as total FROM `' . $table .'`';
+
 		if(!empty($params)) {
+
 			$sql .= ' WHERE ';
-			foreach($params as $key => $value) {
+
+			foreach($params as $key => $value)
 				$sql .= '`' . $key . '` = ? AND';
-			}
+
 			$sql = substr($sql, 0, -4);
+
 		}
+
 		$sth = parent::prepare($sql);
+
 		if($sth) {
+
 			if(!empty($params)) {
+	
 				$i = 1;
 				foreach($params as $param) {
+				
 					$sth->bindParam($i, $param);
 					$i++;
+					
 				}
+
 			}
+
 			if(!$sth->execute())
 				$this->error($sth->errorInfo());
+
 			return $sth->fetchColumn();
+
 		} else $this->error(parent::errorInfo());
 	}
+	
 	public function recordExistsInDB($table, $params) {
+	
 		$num = $this->count($table, $params);
 		return ($num != 0) ? true : false;
+	
 	}
 
 	private function error($info) {
