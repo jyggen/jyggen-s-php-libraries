@@ -1,14 +1,21 @@
 <?php
 class Database extends PDO {
-
-	private $cache       = false;
+	
+	static  $conn_key = false;
+	static  $settings = array();
+	static  $instance = false;
+	
 	public  $cached      = 0;
 	public  $connections = 0;
-	static  $conn_key    = false;
-	static  $settings    = array();
-	static  $instance    = false;
 	public  $queries     = 0;
-
+	
+	private $cache = false;
+	
+	const CACHE_NONE       = 0;
+	const CACHE_SIMPLE     = 1;
+	const CACHE_FULL       = 2;
+	const CACHE_AGGRESSIVE = 3;
+	
 	public function __construct() {
 
 		try {
