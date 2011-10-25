@@ -102,15 +102,17 @@ class Database extends PDO {
 
 	public function query($sql, $parameters=array(), $return = false, $ttl=300) {
 		
-		$sql = trim($sql);
-		
 		$this->queries++;
-		$cache_id = md5(json_encode(array('query' => $sql, 'parameters' => $parameters)));
+		
+		$sql      = trim($sql);
+		$cache_id = $this->getCacheID($sql, $parameters);
 
 		if($return === false || !$this->cacheExists($cache_id)) {
 
 			if($sth = parent::prepare($sql)) {
 
+				$parameters = $this->getParameters($parameters);
+				
 				if(!$sth->execute($parameters))
 					$this->error($sth->errorInfo());
 
@@ -205,6 +207,7 @@ class Database extends PDO {
 			return $sth->fetchColumn();
 
 		} else $this->error(parent::errorInfo());
+
 	}
 	
 	public function recordExistsInDB($table, $params) {
@@ -213,7 +216,56 @@ class Database extends PDO {
 		return ($num != 0) ? true : false;
 	
 	}
+	
+	private function getCacheID($query, $parameters = array()) {
+		
+		$parameters = $this->getParameters($parameters, FALSE);
+		
+		$key = md5(json_encode(array('query' => $query, 'parameters' => $parameters)));
+		
+		return $key;
+		
+	}
+	
+	private function getParameters($parameters, $keep_cachable = TRUE) {
+	
+		$parameters_array = array();
+		if(!empty($parameters)) {
+			foreach($parameters as $key => $value) {
+				
+				if(!is_numeric($key)) {
+				
+					echo $key . '<br>';
+					
+					if(!is_array($value)) {
+						
+					} else {
+					
+						if(!array_key_exists('cached', $value) OR $value['cache'] == FALSE) {
+						
+							$parameters_array[] = $value['value'];
+						
+						} elseif($keep_cachable) {
+							
+							$parameters_array[] = $value['value'];
+							
+						}
+					
+					}
+					
+				} else {
+				
+					$parameters_array[] = $value;
+				
+				}
 
+			}
+		}
+
+		return $parameters_array;
+	
+	}
+	
 	private function error($info) {
 
 		trigger_error($info[2], E_USER_ERROR);
