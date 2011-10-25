@@ -12,9 +12,8 @@ class Database extends PDO {
 	private $cache = false;
 	
 	const CACHE_NONE       = 0;
-	const CACHE_SIMPLE     = 1;
-	const CACHE_FULL       = 2;
-	const CACHE_AGGRESSIVE = 3;
+	const CACHE_NORMAL     = 1;
+	const CACHE_AGGRESSIVE = 2;
 	
 	public function __construct() {
 
@@ -32,6 +31,9 @@ class Database extends PDO {
 			exit(1);
 
 		}
+		
+		if(!array_key_exists('cachelvl', self::$settings))
+			self::$settings['cachelvl'] = CACHE_NORMAL;
 
 		$this->cache = new Memcache;
 		$this->cache->connect('localhost', 11211) or trigger_error('Couldn\'t connect to Cache Server.', E_USER_ERROR);
@@ -113,12 +115,10 @@ class Database extends PDO {
 		
 		$sql      = trim($sql);
 		$cache_id = $this->getCacheID($sql, $parameters);
-
-		if($return === false || !$this->cacheExists($cache_id)) {
+		
+		if(self::$settings['cachelvl'] == 0 || $return === false || !$this->cacheExists($cache_id)) {
 
 			if($sth = parent::prepare($sql)) {
-
-				$parameters = $this->getParameters($parameters);
 				
 				if(!$sth->execute($parameters))
 					$this->error($sth->errorInfo());
@@ -226,11 +226,22 @@ class Database extends PDO {
 	
 	private function getCacheID($query, $parameters = array()) {
 		
-		$parameters = $this->getParameters($parameters, FALSE);
+		switch(self::$settings['cachelvl']) {
 		
-		$key = md5(json_encode(array('query' => $query, 'parameters' => $parameters)));
-		
-		return $key;
+			case 0:
+			default:
+				return md5(uniqid());
+				break;
+
+			case 1:
+				return md5(json_encode(array('query' => $query, 'parameters' => $parameters)));
+				break;
+
+			case 2:
+				return md5($query);
+				break;
+				
+		}
 		
 	}
 	
