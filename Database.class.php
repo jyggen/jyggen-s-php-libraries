@@ -1,20 +1,20 @@
 <?php
 class Database extends PDO {
-	
+
 	static  $conn_key = false;
 	static  $settings = array();
 	static  $instance = false;
-	
+
 	public  $cached      = 0;
 	public  $connections = 0;
 	public  $queries     = 0;
-	
+
 	private $cache = false;
-	
+
 	const CACHE_NONE       = 0;
 	const CACHE_NORMAL     = 1;
 	const CACHE_AGGRESSIVE = 2;
-	
+
 	public function __construct() {
 
 		try {
@@ -31,10 +31,10 @@ class Database extends PDO {
 			exit(1);
 
 		}
-		
-		if(!array_key_exists('cachelvl', self::$settings))
-			self::$settings['cachelvl'] = CACHE_NORMAL;
 
+		if(!array_key_exists('cachelvl', self::$settings))
+			self::$settings['cachelvl'] = self::CACHE_NORMAL;
+		
 		$this->cache = new Memcache;
 		$this->cache->connect('localhost', 11211) or trigger_error('Couldn\'t connect to Cache Server.', E_USER_ERROR);
 		$this->connections++;
@@ -45,9 +45,9 @@ class Database extends PDO {
 
 		if(!empty(self::$settings)) {
 			if(array_key_exists('database', self::$settings) &&
-			   array_key_exists('hostname', self::$settings) &&
-			   array_key_exists('username', self::$settings) &&
-			   array_key_exists('password', self::$settings)) {
+				array_key_exists('hostname', self::$settings) &&
+				array_key_exists('username', self::$settings) &&
+				array_key_exists('password', self::$settings)) {
 
 				$key = md5(serialize(self::$settings));
 
@@ -82,6 +82,12 @@ class Database extends PDO {
 
 	}
 
+	public function flushKey($key, $delay = 0) {
+
+		return $this->cache->delete($key, $delay);
+
+	}
+
 	public function cacheExists($key) {
 
 		return (!($result = $this->cache->get($key, MEMCACHE_COMPRESSED))) ? false : true;
@@ -109,17 +115,17 @@ class Database extends PDO {
 
 	}
 
-	public function query($sql, $parameters=array(), $return = false, $ttl=300) {
-		
+	public function query($sql, $parameters = array(), $return = false, $ttl = 300) {
+
 		$this->queries++;
-		
+
 		$sql      = trim($sql);
 		$cache_id = $this->getCacheID($sql, $parameters);
-		
-		if(self::$settings['cachelvl'] == 0 || $return === false || !$this->cacheExists($cache_id)) {
 
+		if($return === false OR $ttl === false OR !$this->cacheExists($cache_id)) {
+			
 			if($sth = parent::prepare($sql)) {
-				
+
 				if(!$sth->execute($parameters))
 					$this->error($sth->errorInfo());
 
@@ -134,15 +140,15 @@ class Database extends PDO {
 
 				}
 
-				return ($return === true) ? $data : true;
+				return ($return === true) ? $data : $sth->rowCount();
 
 			} else $this->error(parent::errorInfo());
 
-		} elseif($return === true) {
+		} else {
 
 			return $this->load($cache_id);
 
-		} else return false;
+		}
 
 	}
 
@@ -173,7 +179,9 @@ class Database extends PDO {
 		foreach($temp as $v)
 			$params[] = $v;
 
-		$this->query($sql, $params);
+		$rows = $this->query($sql, $params);
+		
+		return $rows;
 
 	}
 
@@ -211,7 +219,7 @@ class Database extends PDO {
 			if(!$sth->execute())
 				$this->error($sth->errorInfo());
 
-			return $sth->fetchColumn();
+			return (int)$sth->fetchColumn();
 
 		} else $this->error(parent::errorInfo());
 
@@ -224,7 +232,7 @@ class Database extends PDO {
 	
 	}
 	
-	private function getCacheID($query, $parameters = array()) {
+	public function getCacheID($query, $parameters = array()) {
 		
 		switch(self::$settings['cachelvl']) {
 		
@@ -245,7 +253,7 @@ class Database extends PDO {
 		
 	}
 	
-	private function getParameters($parameters, $keep_cachable = TRUE) {
+	protected function getParameters($parameters, $keep_cachable = TRUE) {
 	
 		$parameters_array = array();
 		if(!empty($parameters)) {
@@ -284,7 +292,7 @@ class Database extends PDO {
 	
 	}
 	
-	private function error($info) {
+	protected function error($info) {
 
 		trigger_error($info[2], E_USER_ERROR);
 		exit(1);
