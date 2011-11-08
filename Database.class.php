@@ -97,22 +97,31 @@ class Database extends PDO {
 	public function load($key) {
 
 		$this->cached++;
-		return unserialize(gzinflate($this->cache->get($key, MEMCACHE_COMPRESSED)));
+		return json_decode(gzinflate($this->cache->get($key, MEMCACHE_COMPRESSED)), true);
 
 	}
 
 	public function save($key, $data, $ttl = 0) {
 
-		$data = serialize($data);
+		$data = json_encode($data);
 		$data = gzdeflate($data, 9);
+		
+		if(mb_strlen($data, 'UTF-8') < 1048576) {
 
-		if(!$this->cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl)) {
+			if(!$this->cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl)) {
 
-			trigger_error('Could not cache ' . $key, E_USER_ERROR);
-			exit(1);
+				trigger_error('Could not cache '.$key, E_USER_NOTICE);
+				return false;
 
-		} else return true;
-
+			} else return true;
+		
+		} else {
+		
+			trigger_error('Could not cache '.$key.', cache size is limited to 1MB', E_USER_NOTICE);
+			return false;
+		
+		}
+		
 	}
 
 	public function query($sql, $parameters = array(), $return = false, $ttl = 300) {
