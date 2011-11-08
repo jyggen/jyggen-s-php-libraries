@@ -243,6 +243,8 @@ class Database extends PDO {
 	
 	public function getCacheID($query, $parameters = array()) {
 		
+		$query = str_replace(array('( ', ' )'), array('(', ')'), preg_replace('/\s+/', ' ', $query));
+		
 		switch(self::$settings['cachelvl']) {
 		
 			case 0:
@@ -260,45 +262,6 @@ class Database extends PDO {
 				
 		}
 		
-	}
-	
-	protected function getParameters($parameters, $keep_cachable = TRUE) {
-	
-		$parameters_array = array();
-		if(!empty($parameters)) {
-			foreach($parameters as $key => $value) {
-				
-				if(!is_numeric($key)) {
-				
-					echo $key . '<br>';
-					
-					if(!is_array($value)) {
-						
-					} else {
-					
-						if(!array_key_exists('cached', $value) OR $value['cache'] == FALSE) {
-						
-							$parameters_array[] = $value['value'];
-						
-						} elseif($keep_cachable) {
-							
-							$parameters_array[] = $value['value'];
-							
-						}
-					
-					}
-					
-				} else {
-				
-					$parameters_array[] = $value;
-				
-				}
-
-			}
-		}
-
-		return $parameters_array;
-	
 	}
 	
 	protected function error($info) {
