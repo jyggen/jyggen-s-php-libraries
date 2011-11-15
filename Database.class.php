@@ -9,7 +9,7 @@ class Database extends PDO {
 	public  $connections = 0;
 	public  $queries     = 0;
 
-	private $cache = false;
+	protected $cache = false;
 
 	const CACHE_NONE       = 0;
 	const CACHE_NORMAL     = 1;
@@ -126,18 +126,18 @@ class Database extends PDO {
 
 	public function query($sql, $parameters = array(), $return = false, $ttl = 300) {
 
-		$this->queries++;
-
 		$sql      = trim($sql);
 		$cache_id = $this->getCacheID($sql, $parameters);
 
 		if($return === false OR $ttl === false OR !$this->cacheExists($cache_id)) {
 			
 			if($sth = parent::prepare($sql)) {
-
+				
 				if(!$sth->execute($parameters))
 					$this->error($sth->errorInfo());
-
+				
+				$this->queries++;
+				
 				if($return === true) {
 
 					$data = (substr($sql, -7) == 'LIMIT 1')
@@ -149,7 +149,7 @@ class Database extends PDO {
 
 				}
 
-				return ($return === true) ? $data : $sth->rowCount();
+				return ($return === true) ? $data : ((substr($sql, 0, 6) == 'SELECT') ? (int)$sth->fetchColumn() : $sth->rowCount());
 
 			} else $this->error(parent::errorInfo());
 
@@ -196,41 +196,24 @@ class Database extends PDO {
 
 	public function count($table, $params = array()) {
 
-		$sql = 'SELECT COUNT(*) as total FROM `' . $table .'`';
+		$sql = 'SELECT COUNT(*) FROM `' . $table .'`';
 
 		if(!empty($params)) {
 
 			$sql .= ' WHERE ';
 
-			foreach($params as $key => $value)
-				$sql .= '`' . $key . '` = ? AND';
-
+			foreach($params as $key => $value) {
+			
+				$sql   .= '`' . $key . '` = ? AND';
+				$args[] = $value;
+				
+			}
+				
 			$sql = substr($sql, 0, -4);
 
 		}
-
-		$sth = parent::prepare($sql);
-
-		if($sth) {
-
-			if(!empty($params)) {
-	
-				$i = 1;
-				foreach($params as $param) {
-				
-					$sth->bindParam($i, $param);
-					$i++;
-					
-				}
-
-			}
-
-			if(!$sth->execute())
-				$this->error($sth->errorInfo());
-
-			return (int)$sth->fetchColumn();
-
-		} else $this->error(parent::errorInfo());
+		
+		return (!empty($params)) ? $this->query($sql, $args) : $this->query($sql);
 
 	}
 	
@@ -266,8 +249,7 @@ class Database extends PDO {
 	
 	protected function error($info) {
 
-		trigger_error($info[2], E_USER_ERROR);
-		exit(1);
+		throw new Exception($info[2]);
 
 	}
 
