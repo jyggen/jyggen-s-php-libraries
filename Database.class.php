@@ -2,13 +2,13 @@
 class Database extends PDO
 {
 
-	static  $connKey = false;
-	static  $settings = array();
-	static  $instance = false;
+	public static $connKey = false;
+	public static $settings = array();
+	public static $instance = false;
 
-	public  $cached      = 0;
-	public  $connections = 0;
-	public  $queries     = 0;
+	public $cached      = 0;
+	public $connections = 0;
+	public $queries     = 0;
 
 	protected $_cache = false;
 
@@ -31,9 +31,7 @@ class Database extends PDO
 				$dsn,
 				self::$settings['username'],
 				self::$settings['password'],
-				array(
-					PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
-				)
+				array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8')
 			);
 
 		} catch (PDOException $e) {
@@ -41,9 +39,9 @@ class Database extends PDO
 			trigger_error($e->getMessage(), E_USER_ERROR);
 			exit(1);
 
-		}
+		}//end try
 
-		if (!array_key_exists('cachelvl', self::$settings)) {
+		if (array_key_exists('cachelvl', self::$settings) === false) {
 
 			self::$settings['cachelvl'] = self::CACHE_NORMAL;
 
@@ -66,17 +64,17 @@ class Database extends PDO
 	public static function getInstance()
     {
 
-		if (!empty(self::$settings)) {
+		if (empty(self::$settings) === false) {
 
-			if (array_key_exists('database', self::$settings)
-				&& array_key_exists('hostname', self::$settings)
-				&& array_key_exists('username', self::$settings)
-				&& array_key_exists('password', self::$settings)
+			if (array_key_exists('database', self::$settings) === true
+				&& array_key_exists('hostname', self::$settings) === true
+				&& array_key_exists('username', self::$settings) === true
+				&& array_key_exists('password', self::$settings) === true
 			) {
 
 				$key = md5(serialize(self::$settings));
 
-				if (!self::$instance || $key != self::$connKey) {
+				if (self::$instance === false || $key !== self::$connKey) {
 
 					self::$connKey = $key;
 					self::$instance = new self();
@@ -97,30 +95,30 @@ class Database extends PDO
 			trigger_error('Missing connection settings', E_USER_ERROR);
 			exit(1);
 
-		}
+		}//end if
 
     }
 
-	public function flush($delay = 0)
+	public function flush($delay=0)
 	{
 
-		return $this->_cache->flush($delay);
+		$this->_cache->flush($delay);
 
 	}
 
-	public function flushKey($key, $delay = 0)
+	public function flushKey($key, $delay=0)
 	{
 
-		return $this->_cache->delete($key, $delay);
+		$this->_cache->delete($key, $delay);
 
 	}
 
 	public function cacheExists($key)
 	{
 
-		return (!($result = $this->_cache->get($key, MEMCACHE_COMPRESSED)))
-				? false
-				: true;
+		$success = $this->_cache->get($key, MEMCACHE_COMPRESSED);
+
+		return ($success === false) ? false : true;
 
 	}
 
@@ -128,14 +126,16 @@ class Database extends PDO
 	{
 
 		$this->cached++;
-		return json_decode(
+		$json = json_decode(
 			gzinflate($this->_cache->get($key, MEMCACHE_COMPRESSED)),
 			true
 		);
 
+		return $json;
+
 	}
 
-	public function save($key, $data, $ttl = 0)
+	public function save($key, $data, $ttl=0)
 	{
 
 		$data = json_encode($data);
@@ -143,7 +143,9 @@ class Database extends PDO
 
 		if (mb_strlen($data, 'UTF-8') < 1048576) {
 
-			if (!$this->_cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl)) {
+			$cache = $this->_cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl);
+
+			if ($cache === false) {
 
 				trigger_error('Could not cache '.$key, E_USER_NOTICE);
 				return false;
@@ -159,7 +161,7 @@ class Database extends PDO
 			$this->error('Could not cache '.$key.' (1MB limit)');
 			return false;
 
-		}
+		}//end if
 
 	}
 
@@ -170,13 +172,15 @@ class Database extends PDO
 		$cacheID = $this->getCacheID($sql, $parameters);
 
 		if ($return === false
-			OR $ttl === false
-			OR !$this->cacheExists($cacheID)
+			|| $ttl === false
+			|| $this->cacheExists($cacheID) === false
 		) {
 
-			if ($sth = parent::prepare($sql)) {
+			$sth = parent::prepare($sql);
 
-				if (!$sth->execute($parameters)) {
+			if ($sth !== false) {
+
+				if ($sth->execute($parameters) === false) {
 
 					$this->error($sth->errorInfo());
 
@@ -186,9 +190,15 @@ class Database extends PDO
 
 					if ($return === true) {
 
-						$data = (substr($sql, -7) == 'LIMIT 1')
-							? $sth->fetch(parent::FETCH_ASSOC)
-							: $sth->fetchAll(parent::FETCH_ASSOC);
+						if (substr($sql, -7) === 'LIMIT 1') {
+
+							$data = $sth->fetch(parent::FETCH_ASSOC);
+
+						} else {
+
+							$data = $sth->fetchAll(parent::FETCH_ASSOC);
+
+						}
 
 						if ($ttl !== false) {
 
@@ -198,50 +208,65 @@ class Database extends PDO
 
 					}
 
-					return ($return === true)
-						? $data
-						: ((substr($sql, 0, 6) == 'SELECT')
-							? (int)$sth->fetchColumn()
-							: $sth->rowCount());
+					if ($return === true) {
 
-				}
+						return $data;
+
+					} else {
+
+						if (substr($sql, 0, 6) === 'SELECT') {
+
+							$num = (int) $sth->fetchColumn();
+
+						} else {
+
+							$num = $sth->rowCount();
+
+						}
+
+						return $num;
+
+					}
+
+				}//end if
 
 			} else {
 
 				$this->error(parent::errorInfo());
 
-			}
+			}//end if
 
 		} else {
 
-			return $this->load($cacheID);
+			$data = $this->load($cacheID);
+			return $data;
 
-		}
+		}//end if
 
 	}
 
 	public function update($table, $params, $where)
 	{
 
-		$sql = 'UPDATE `' . $table . '` SET' . "\n";
+		$sql = 'UPDATE `'.$table.'` SET'."\n";
 
 		foreach ($params as $k => $v) {
 
-			$sql .= '`' . $k . '` = ?,' . "\n";
+			$sql .= '`'.$k.'` = ?,'."\n";
 
 		}
 
 		$sql  = substr($sql, 0, -2);
-		$sql .= "\n" . 'WHERE ';
+		$sql .= "\n".'WHERE ';
 
 		foreach ($where as $k => $v) {
 
-			$sql .= '`' . $k . '` = ? AND' . "\n";
+			$sql .= '`'.$k.'` = ? AND'."\n";
 
 		}
 
 		$sql    = substr($sql, 0, -5);
-		$sql   .= "\n" . 'LIMIT 1';
+		$sql   .= "\n".'LIMIT 1';
 		$temp   = $params;
 		$params = array();
 
@@ -266,18 +291,18 @@ class Database extends PDO
 
 	}
 
-	public function count($table, $params = array())
+	public function count($table, $params=array())
 	{
 
-		$sql = 'SELECT COUNT(*) FROM `' . $table .'`';
+		$sql = 'SELECT COUNT(*) FROM `'.$table.'`';
 
-		if (!empty($params)) {
+		if (empty($params) === false) {
 
 			$sql .= ' WHERE ';
 
 			foreach ($params as $key => $value) {
 
-				$sql   .= '`' . $key . '` = ? AND';
+				$sql   .= '`'.$key.'` = ? AND';
 				$args[] = $value;
 
 			}
@@ -286,9 +311,17 @@ class Database extends PDO
 
 		}
 
-		return (!empty($params))
-			? $this->query($sql, $args)
-			: $this->query($sql);
+		if (empty($params) === false) {
+
+			$data = $this->query($sql, $args);
+			return $data;
+
+		} else {
+
+			$data = $this->query($sql);
+			return $data;
+
+		}
 
 	}
 
@@ -296,11 +329,11 @@ class Database extends PDO
 	{
 
 		$num = $this->count($table, $params);
-		return ($num != 0) ? true : false;
+		return ($num !== 0) ? true : false;
 
 	}
 
-	public function getCacheID($query, $parameters = array())
+	public function getCacheID($query, $parameters=array())
 	{
 
 		$query = preg_replace('/\s+/', ' ', $query);
@@ -308,27 +341,30 @@ class Database extends PDO
 
 		switch(self::$settings['cachelvl']) {
 
-		case 0:
-		default:
-			return md5(uniqid());
+			case 0:
+			default:
+				$hash = md5(uniqid());
+				return $hash;
 			break;
 
-		case 1:
-			return md5(
-				json_encode(
-					array(
-						'query'      => $query,
-						'parameters' => $parameters
+			case 1:
+				$hash = md5(
+					json_encode(
+						array(
+						 'query'      => $query,
+						 'parameters' => $parameters,
+						)
 					)
-				)
-			);
+				);
+				return $hash;
 			break;
 
-		case 2:
-			return md5($query);
+			case 2:
+				$hash = md5($query);
+				return $hash;
 			break;
 
-		}
+		}//end switch
 
 	}
 

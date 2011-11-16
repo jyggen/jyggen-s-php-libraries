@@ -27,16 +27,16 @@ class API
 
     }
 
-    public static function call($path, $response = 'json', $post = null)
+    public static function call($path, $response='json', $post=null)
     {
 
         self::$_response = $response;
 
-        if ($post == null && isset($_POST) && !empty($_POST)) {
+        if ($post === null && isset($_POST) === true && empty($_POST) === false) {
 
             $post = $_POST;
 
-        } elseif ($post == null) {
+        } else if ($post === null) {
 
             $post = false;
 
@@ -51,14 +51,14 @@ class API
 
         switch(self::$_response) {
 
-		case 'array':
-            return self::responseArray($msg);
-            break;
+			case 'array':
+				return self::responseArray($msg);
+			break;
 
-        case 'json':
-		default:
-			return self::responseJson($msg, $code);
-            break;
+			case 'json':
+			default:
+				return self::responseJson($msg, $code);
+			break;
 
         }
 
@@ -71,27 +71,27 @@ class API
 
 		switch($code) {
 
-		case 200:
-			$success   = true;
-			$codeTitle = 'OK';
+			case 200:
+				$success   = true;
+				$codeTitle = 'OK';
 			break;
 
-		case 400:
-			$codeTitle = 'Bad Request';
+			case 400:
+				$codeTitle = 'Bad Request';
 			break;
 
-		case 500:
-			$code      = 500;
-			$codeTitle = 'Internal Server Error';
+			case 500:
+				$code      = 500;
+				$codeTitle = 'Internal Server Error';
 			break;
 
-		default:
-			trigger_error('Undefined HTTP Response ('.$code.')', E_USER_NOTICE);
-			$code      = 500;
-			$codeTitle = 'Internal Server Error';
+			default:
+				trigger_error('Undefined HTTP Response ('.$code.')', E_USER_NOTICE);
+				$code      = 500;
+				$codeTitle = 'Internal Server Error';
 			break;
 
-        }
+        }//end switch
 
         header('Cache-Control: no-cache, must-revalidate');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -101,8 +101,8 @@ class API
 
         print json_encode(
 			array(
-				'success' => $success,
-				'data'    => $msg,
+			 'success' => $success,
+			 'data'    => $msg,
 			)
 		);
 
@@ -117,15 +117,15 @@ class API
 
     }
 
-    protected static function handleRequest($req, $post = false)
+    protected static function handleRequest($req, $post=false)
     {
 
-        $root = realpath(dirname($_SERVER['SCRIPT_FILENAME']) . '/../api');
+        $root = realpath(dirname($_SERVER['SCRIPT_FILENAME']).'/../api');
 
-        if (!isset($req[0])
-			OR empty($req[0])
-			OR !isset($req[1])
-			OR empty($req[1])
+        if (isset($req[0]) === false
+			|| empty($req[0]) === true
+			|| isset($req[1]) === false
+			|| empty($req[1]) === true
 		) {
 
             self::response('Invalid Request', 400);
@@ -139,13 +139,13 @@ class API
         unset($req[0]);
         unset($req[1]);
 
-        if (!self::parseArguments($req)) {
+        if (self::parseArguments($req) === false) {
 
 			self::response('Invalid Arguments', 400);
 
 		}
 
-        if (!self::parseData($post)) {
+        if (self::parseData($post) === false) {
 
             self::response('Invalid Data', 400);
 
@@ -153,13 +153,13 @@ class API
 
 		$resPath = substr(self::$_path, 0, -(strlen(self::$_resource) + 5));
 
-        if (!file_exists(self::$_path) OR $resPath != $root) {
+        if (file_exists(self::$_path) === false || $resPath !== $root) {
 
             self::response('Invalid Resource', 400);
 
 		}
 
-        if (!is_callable(array(self::$_resource, self::$_method))) {
+        if (is_callable(array(self::$_resource, self::$_method) === false)) {
 
             self::response('Invalid Method', 400);
 
@@ -174,16 +174,36 @@ class API
 
         $args = array_filter($args);
 
-        if (!empty($args)) {
+        if (empty($args) === false) {
 
             foreach ($args as $arg) {
 
-                @list($key, $value) = explode(':', $arg);
+				$list = explode(':', $arg);
 
-                if (!isset($key)
-					OR empty($key)
-					OR !isset($value)
-					OR empty($key)
+				if (isset($list[0]) === true) {
+
+					$key = $list[0];
+
+				} else {
+
+					$key = array();
+
+				}
+
+				if (isset($list[1]) === true) {
+
+					$value = $list[1];
+
+				} else {
+
+					$value = array();
+
+				}
+
+                if (isset($key) === false
+					|| empty($key) === true
+					|| isset($value) === false
+					|| empty($key) === true
 				) {
 
                     return false;
@@ -192,13 +212,13 @@ class API
 
                 self::$_args[$key] = $value;
 
-            }
+            }//end foreach
 
         } else {
 
             self::$_args = null;
 
-        }
+        }//end if
 
         return true;
 
@@ -207,7 +227,7 @@ class API
     protected static function parseData($args)
     {
 
-        if ($args == false) {
+        if ($args === false) {
 
             return true;
 
@@ -215,14 +235,14 @@ class API
 
             $args = array_filter($args);
 
-            if (!empty($args)) {
+            if (empty($args) === false) {
 
                 foreach ($args as $key => $value) {
 
-                    if (!isset($value)
-						OR empty($value)
-						OR !isset($key)
-						OR empty($key)
+                    if (isset($value) === false
+						|| empty($value) === true
+						|| isset($key) === false
+						|| empty($key) === true
 					) {
 
                         return false;
@@ -237,27 +257,31 @@ class API
 
                 self::$_data = null;
 
-            }
+            }//end if
 
             return true;
 
-        }
+        }//end if
 
     }
 
     protected static function getDatabase()
     {
 
-        return (!self::$_db)
-			? self::$_db = Database::getInstance()
-			: self::$_db;
+		if (self::$_db === false) {
+
+			self::$_db = Database::getInstance();
+
+		}
+
+		return self::$_db;
 
     }
 
     protected static function argumentExists($arg)
     {
 
-        if (!is_array(self::$_args)) {
+        if (is_array(self::$_args) === false) {
 
             return false;
 
@@ -270,7 +294,7 @@ class API
     protected static function dataExists($key)
     {
 
-        if (!is_array(self::$_data)) {
+        if (is_array(self::$_data) === false) {
 
             return false;
 
@@ -283,7 +307,7 @@ class API
     protected static function convertByte($bytes)
     {
 
-        $size = $bytes / 1024;
+        $size = ($bytes / 1024);
 
         if ($size < 1024) {
 
@@ -292,14 +316,14 @@ class API
 
         } else {
 
-            if ($size / 1024 < 1024) {
+            if (($size / 1024) < 1024) {
 
-                $size  = number_format($size / 1024, 2);
+                $size  = number_format(($size / 1024), 2);
                 $size .= ' MB';
 
-            } else if ($size / 1024 / 1024 < 1024) {
+            } else if ((($size / 1024) / 1024) < 1024) {
 
-                $size  = number_format($size / 1024 / 1024, 2);
+                $size  = number_format((($size / 1024) / 1024), 2);
                 $size .= ' GB';
 
             }
@@ -313,58 +337,38 @@ class API
     protected static function orderBySubkey(&$array, $key, $asc=SORT_ASC)
     {
 
-        $sortFlags = array(SORT_ASC, SORT_DESC);
+        $sortFlags = array(
+		              SORT_ASC,
+		              SORT_DESC,
+		             );
 
-        if (!in_array($asc, $sortFlags)) {
+        if (in_array($asc, $sortFlags) === false) {
 
             throw new Exception('sort flag only accepts SORT_ASC or SORT_DESC');
 
 		}
 
-        $cmp = function(array $a, array $b) use ($key, $asc, $sortFlags) {
+		$arr = $array;
 
-            if (!is_array($key)) {
+        usort(
+			$arr,
+			function(array $a, array $b) use ($key, $asc, $sortFlags) {
 
-				if (!isset($a[$key]) || !isset($b[$key])) {
+				if (is_array($key) === false) {
 
-					throw new Exception('sort on non-existent keys');
-
-				}
-
-				if ($a[$key] == $b[$key]) {
-
-					return 0;
-
-				}
-
-				return ($asc==SORT_ASC xor $a[$key] < $b[$key]) ? 1 : -1;
-
-			} else {
-
-				foreach ($key as $subKey => $subAsc) {
-
-					if (!in_array($subAsc, $sortFlags)) {
-
-						$subKey = $subAsc;
-						$subAsc = $asc;
-
-					}
-
-                    if (!isset($a[$subKey]) || !isset($b[$subKey])) {
+					if (isset($a[$key]) === false || isset($b[$key]) === false) {
 
 						throw new Exception('sort on non-existent keys');
 
 					}
 
-					if ($a[$subKey] == $b[$subKey]) {
+					if ($a[$key] === $b[$key]) {
 
-						continue;
+						return 0;
 
 					}
 
-					if ($subAsc == SORT_ASC
-						xor $a[$subKey] < $b[$subKey]
-					) {
+					if (($asc === SORT_ASC ^ $a[$key] < $b[$key])) {
 
 						return 1;
 
@@ -374,15 +378,49 @@ class API
 
 					}
 
-				}
+				} else {
 
-                return 0;
+					foreach ($key as $subKey => $subAsc) {
 
-            }
+						if (in_array($subAsc, $sortFlags) === false) {
 
-        };
+							$subKey = $subAsc;
+							$subAsc = $asc;
 
-        usort($array, $cmp);
+						}
+
+						if (isset($a[$subKey]) === false
+							|| isset($b[$subKey]) === false
+						) {
+
+							throw new Exception('sort on non-existent keys');
+
+						}
+
+						if ($a[$subKey] === $b[$subKey]) {
+
+							continue;
+
+						}
+
+						if (($subAsc === SORT_ASC ^ $a[$subKey] < $b[$subKey])) {
+
+							return 1;
+
+						} else {
+
+							return -1;
+
+						}
+
+					}//end foreach
+
+					return 0;
+
+				}//end if
+
+			}
+		);
 
     }
 
@@ -394,7 +432,7 @@ class API
 
         foreach ($arr as $value) {
 
-            $total = $total + $value;
+            $total = ($total + $value);
 
         }
 

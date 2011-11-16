@@ -9,7 +9,9 @@ class Cache
 	static public function getInstance()
 	{
 
-		if (self::$instance === null OR !self::$instance instanceof Cache) {
+		if (self::$instance === null
+			|| self::$instance instanceof Cache === false
+		) {
 
 			self::$instance = new self();
 
