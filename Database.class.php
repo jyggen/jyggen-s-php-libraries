@@ -47,23 +47,19 @@ class Database extends PDO
 
 			self::$settings['cachelvl'] = self::CACHE_NORMAL;
 
-        }
+		}
 
-        try {
+		try {
 
-            $this->_cache = new Memcache;
-            $this->_cache->connect('localhost', 11211);
-            $this->connections++;
+			$this->_cache = new Memcache;
+			$this->_cache->connect('localhost', 11211);
+			$this->connections++;
 
-        } catch (Exception $e) {
+		} catch (Exception $e) {
 
-            $this->error($e->getMessage());
+			$this->error($e->getMessage());
 
-        }
-
-
-
-
+		}
 
 	}
 
