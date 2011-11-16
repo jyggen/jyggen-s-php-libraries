@@ -268,7 +268,7 @@ class API
     protected static function getDatabase()
     {
 
-		if (self::$_db === false) {
+		if (self::$_db === null) {
 
 			self::$_db = Database::getInstance();
 
