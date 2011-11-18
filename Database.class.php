@@ -165,7 +165,7 @@ class Database extends PDO
 
 	}
 
-	public function query($sql, $parameters=array(), $return=false, $ttl=300)
+	public function query($sql, $parameters=null, $return=false, $ttl=300)
 	{
 
 		$sql      = trim($sql);
@@ -179,6 +179,12 @@ class Database extends PDO
 			$sth = parent::prepare($sql);
 
 			if ($sth !== false) {
+
+				if ($parameters === null) {
+
+					$parameters = array();
+
+				}
 
 				if ($sth->execute($parameters) === false) {
 
@@ -205,10 +211,6 @@ class Database extends PDO
 							$this->save($cacheID, $data, $ttl);
 
 						}
-
-					}
-
-					if ($return === true) {
 
 						return $data;
 
