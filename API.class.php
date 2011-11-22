@@ -11,6 +11,7 @@ class API
 	protected static $_resource;
 	protected static $_data;
 	protected static $_response;
+	protected static $_respath;
 
     public static function autoload($name)
     {
@@ -131,10 +132,11 @@ class API
             self::response('Invalid Request', 400);
 
         }
-
-        self::$_resource = 'res_'.basename($req[0]);
-        self::$_method   = 'mtd_'.basename($req[1]);
-        self::$_path     = realpath($root.'/'.self::$_resource.'.php');
+	
+		self::$_respath  = 'res_'.basename($req[0]);
+        self::$_resource = 'Resource'.ucwords(basename($req[0]));
+        self::$_method   = 'mtd'.ucwords(basename($req[1]));
+        self::$_path     = realpath($root.'/'.self::$_respath.'.php');
 
         unset($req[0]);
         unset($req[1]);
@@ -151,13 +153,15 @@ class API
 
 		}
 
-		$resPath = substr(self::$_path, 0, -(strlen(self::$_resource) + 5));
+		$resPath = substr(self::$_path, 0, -(strlen(self::$_respath) + 5));
 
         if (file_exists(self::$_path) === false || $resPath !== $root) {
 
             self::response('Invalid Resource', 400);
 
 		}
+		
+		include_once self::$_path;
 
         if (is_callable(array(self::$_resource, self::$_method) === false)) {
 

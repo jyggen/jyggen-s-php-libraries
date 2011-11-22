@@ -228,7 +228,7 @@ class Database extends PDO
 
 						return $num;
 
-					}
+					}//end if
 
 				}//end if
 
