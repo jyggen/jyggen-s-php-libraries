@@ -220,6 +220,10 @@ class Database extends PDO
 
 							$num = (int) $sth->fetchColumn();
 
+						} else if (substr($sql, 0, 6) === 'INSERT') {
+
+							$num = parent::lastInsertId();
+
 						} else {
 
 							$num = $sth->rowCount();
