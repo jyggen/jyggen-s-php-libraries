@@ -445,6 +445,7 @@ class API
         return $average;
 
     }
+
 	protected static function getElapsedTime($ptime)
 	{
 
