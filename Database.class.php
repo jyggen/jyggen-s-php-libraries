@@ -184,6 +184,10 @@ class Database extends PDO
 
 					$parameters = array();
 
+				} else if (is_array($parameters) === false) {
+				
+					$parameters = array($parameters);
+				
 				}
 
 				if ($sth->execute($parameters) === false) {
