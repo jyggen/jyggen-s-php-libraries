@@ -16,10 +16,10 @@ Database
 
 A simple database query might look like this:
 
-	Database::$settings['hostname'] = 'localhost';
-	Database::$settings['database'] = 'my_application';
-	Database::$settings['username'] = 'root';
-	Database::$settings['password'] = 'mySeCr3tP@azzw0rd';
+	Database::$dsn['hostname'] = 'localhost';
+	Database::$dsn['database'] = 'my_application';
+	Database::$dsn['username'] = 'root';
+	Database::$dsn['password'] = 'mySeCr3tP@azzw0rd';
 
 	$dbh  = Database::getInstance();
 	$sql  = 'SELECT * FROM `users` WHERE `username` = ? LIMIT 1';
