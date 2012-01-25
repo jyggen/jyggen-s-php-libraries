@@ -77,7 +77,7 @@ class Database extends PDO
 	 * the database. Otherwise it'll create a new one
 	 * based on the settings (hopefully) supplied earlier.
 	 *
-	 * @return object
+	 * @return	object
 	 */
 	public static function getInstance()
 	{
@@ -204,13 +204,25 @@ class Database extends PDO
 		}//end if
 
 	}
-
+	
+	/**
+	 * Tries to retrieve any existing connection to
+	 * the database. Otherwise it'll create a new one
+	 * based on the settings (hopefully) supplied earlier.
+	 *
+	 * @param	string	sql query
+	 * @param	mixed	single parameter, array of parameters or null
+	 * @param	boolean	if true, return data or row count
+	 * @param	integer	number of seconds to cache the query
+	 * @return	mixed
+	 */
 	public function query($sql, $parameters=null, $return=false, $ttl=300)
 	{
 
-		$sql      = trim($sql);
+		$sql     = trim($sql);
 		$cacheID = $this->getCacheID($sql, $parameters);
-
+		
+		// Check if the cached data should be returned.
 		if ($return === false
 			|| $ttl === false
 			|| $this->cacheExists($cacheID) === false
@@ -256,20 +268,21 @@ class Database extends PDO
 
 						}
 
-
-
 						return $data;
 
 					} else {
 
+						// Return row count(?) on SELECT query.
 						if (substr($sql, 0, 6) === 'SELECT') {
 
 							$num = (int) $sth->fetchColumn();
-
+						
+						// Return ID on INSERT query.
 						} else if (substr($sql, 0, 6) === 'INSERT') {
 
 							$num = parent::lastInsertId();
-
+						
+						// Return row count.
 						} else {
 
 							$num = $sth->rowCount();
@@ -288,6 +301,7 @@ class Database extends PDO
 
 			}//end if
 
+		// Return cached data.
 		} else {
 
 			$data = $this->load($cacheID);
