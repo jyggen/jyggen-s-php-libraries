@@ -85,7 +85,7 @@ class Database extends PDO
 		// Legacy fallback. Old code might still use $settings instead of $dsn.
 		if (empty(self::$settings) === false && empty(self::$dsn) === true) {
 		
-			self::$dsn = self::$settings;
+			self::$dsn = &self::$settings;
 		
 		}
 		
