@@ -81,6 +81,10 @@ class API
 				$codeTitle = 'Bad Request';
 			break;
 
+			case 401:
+				$codeTitle = 'Unauthorized';
+			break;
+
 			case 500:
 				$code      = 500;
 				$codeTitle = 'Internal Server Error';
@@ -307,36 +311,31 @@ class API
         return array_key_exists($key, self::$_data);
 
     }
+	
+	protected static function convertByte($bytes=0, $decimals=0)
+	{
 
-    protected static function convertByte($bytes)
-    {
+		$quant = array(
+				  'TB' => 1099511627776,
+				  'GB' => 1073741824,
+				  'MB' => 1048576,
+				  'kB' => 1024,
+				  'B ' => 1,
+				 );
 
-        $size = ($bytes / 1024);
+		foreach ($quant as $unit => $mag) {
 
-        if ($size < 1024) {
+			if (doubleval($bytes) >= $mag) {
+			
+				return sprintf('%01.'.$decimals.'f', ($bytes / $mag)).' '.$unit;
+			
+			}
 
-            $size  = number_format($size, 2);
-            $size .= ' KB';
+		}
 
-        } else {
+		return false;
 
-            if (($size / 1024) < 1024) {
-
-                $size  = number_format(($size / 1024), 2);
-                $size .= ' MB';
-
-            } else if ((($size / 1024) / 1024) < 1024) {
-
-                $size  = number_format((($size / 1024) / 1024), 2);
-                $size .= ' GB';
-
-            }
-
-        }
-
-        return $size;
-
-    }
+	}
 
     protected static function orderBySubkey(&$array, $key, $asc=SORT_ASC)
     {
@@ -428,21 +427,18 @@ class API
 
     }
 
-    protected static function calculateAverage($arr)
+    protected static function calculateAverage($array)
     {
+		
+		$count = count($array);
+		
+		if ($count === 0) {
+		
+			return 0;
+		
+		}
 
-        $count = count($arr);
-        $total = 0;
-
-        foreach ($arr as $value) {
-
-            $total = ($total + $value);
-
-        }
-
-        $average = ($total/$count);
-
-        return $average;
+		return (array_sum($array) / $count);
 
     }
 
@@ -514,6 +510,54 @@ class API
 
 		}//end foreach
 
+	}
+
+	protected static function ip($default='0.0.0.0')
+	{
+
+		if (isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP']) === true) {
+
+			return $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
+
+		}
+
+		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) === true) {
+
+			return $_SERVER['HTTP_X_FORWARDED_FOR'];
+
+		}
+
+		if (isset($_SERVER['HTTP_CLIENT_IP']) === true) {
+
+			return $_SERVER['HTTP_CLIENT_IP'];
+
+		}
+
+		if (isset($_SERVER['REMOTE_ADDR']) === true) {
+
+			return $_SERVER['REMOTE_ADDR'];
+
+		}
+
+		return $default;
+
+	}
+
+	protected static function guid()
+	{
+
+		if (isset($_SERVER['HTTP_USER_AGENT']) === true) {
+
+			$guid = hash_hmac('sha256', self::ip(), $_SERVER['HTTP_USER_AGENT']);
+
+		} else {
+
+			$guid = hash('sha256', self::ip());
+
+		}
+
+		return $guid;
+		
 	}
 
 }
