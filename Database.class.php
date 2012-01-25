@@ -1,8 +1,20 @@
 <?php
+/**
+ * Part of jyggen's PHP Libraries.
+ *
+ * Database class.
+ *
+ * @package jyggen's PHP Libraries
+ * @license MIT License
+ * @copyright 2012 Jonas Stendahl
+ * @link http://jyggen.com
+ */
+
 class Database extends PDO
 {
 
-	public static $connKey = false;
+	public static $connKey  = false;
+	public static $dsn      = array();
 	public static $settings = array();
 	public static $instance = false;
 
@@ -23,27 +35,26 @@ class Database extends PDO
 
 			$dsn = sprintf(
 				'mysql:dbname=%s;host=%s;charset=UTF-8;',
-				self::$settings['database'],
-				self::$settings['hostname']
+				self::$dsn['database'],
+				self::$dsn['hostname']
 			);
 
 			parent::__construct(
 				$dsn,
-				self::$settings['username'],
-				self::$settings['password'],
+				self::$dsn['username'],
+				self::$dsn['password'],
 				array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8')
 			);
 
 		} catch (PDOException $e) {
 
-			trigger_error($e->getMessage(), E_USER_ERROR);
-			exit(1);
+			$this->error($e->getMessage());
 
 		}//end try
 
-		if (array_key_exists('cachelvl', self::$settings) === false) {
+		if (array_key_exists('cachelvl', self::$dsn) === false) {
 
-			self::$settings['cachelvl'] = self::CACHE_NORMAL;
+			self::$dsn['cachelvl'] = self::CACHE_NORMAL;
 
 		}
 
@@ -60,42 +71,71 @@ class Database extends PDO
 		}
 
 	}
-
+	
+	/**
+	 * Tries to retrieve any existing connection to
+	 * the database. Otherwise it'll create a new one
+	 * based on the settings (hopefully) supplied earlier.
+	 *
+	 * @return object
+	 */
 	public static function getInstance()
-    {
+	{
+		
+		// Legacy fallback. Old code might still use $settings instead of $dsn.
+		if (empty(self::$settings) === false && empty(self::$dsn) === true) {
+		
+			self::$dsn = self::$settings;
+		
+		}
+		
+		// Check if DSN is empty.
+		if (empty(self::$dsn) === true) {
 
-		if (empty(self::$settings) === false) {
+			throw new DatabaseException('No DSN values supplied');
+		
+		}
+		
+		// Check if database is missing from DSN.
+		if (array_key_exists('database', self::$dsn) === false) {
+		
+			throw new DatabaseException('Missing DSN value: database');
+		
+		}
+		
+		// Check if hostname is missing from DSN.
+		if (array_key_exists('hostname', self::$dsn) === false) {
+		
+			throw new DatabaseException('Missing DSN value: hostname');
+		
+		}
+		
+		// Check if username is missing from DSN.
+		if (array_key_exists('username', self::$dsn) === false) {
+		
+			throw new DatabaseException('Missing DSN value: username');
+		
+		}
+		
+		// Check if password is missing from DSN.
+		if (array_key_exists('password', self::$dsn) === false) {
+		
+			throw new DatabaseException('Missing DSN value: password');
+		
+		}
+		
+		// Generate an unique DSN key.
+		$key = md5(serialize(self::$dsn));
+		
+		// Create a new instance if we don't have one.
+		if (self::$instance === false || $key !== self::$connKey) {
 
-			if (array_key_exists('database', self::$settings) === true
-				&& array_key_exists('hostname', self::$settings) === true
-				&& array_key_exists('username', self::$settings) === true
-				&& array_key_exists('password', self::$settings) === true
-			) {
+			self::$connKey = $key;
+			self::$instance = new self();
 
-				$key = md5(serialize(self::$settings));
+		}
 
-				if (self::$instance === false || $key !== self::$connKey) {
-
-					self::$connKey = $key;
-					self::$instance = new self();
-
-				}
-
-				return self::$instance;
-
-			} else {
-
-				trigger_error('Missing connection settings', E_USER_ERROR);
-				exit(1);
-
-			}
-
-		} else {
-
-			trigger_error('Missing connection settings', E_USER_ERROR);
-			exit(1);
-
-		}//end if
+		return self::$instance;
 
     }
 
@@ -215,6 +255,8 @@ class Database extends PDO
 							$this->save($cacheID, $data, $ttl);
 
 						}
+
+
 
 						return $data;
 
@@ -349,7 +391,7 @@ class Database extends PDO
 		$query = preg_replace('/\s+/', ' ', $query);
 		$query = str_replace(array('( ', ' )'), array('(', ')'), $query);
 
-		switch(self::$settings['cachelvl']) {
+		switch(self::$dsn['cachelvl']) {
 
 			case 0:
 			default:
@@ -381,8 +423,13 @@ class Database extends PDO
 	protected function error($info)
 	{
 
-		throw new Exception($info[2]);
+		throw new DatabaseException($info[2]);
 
 	}
 
+}
+
+class DatabaseException extends Exception
+{
+	
 }
