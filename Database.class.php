@@ -208,7 +208,7 @@ class Database extends PDO
 	}
 
 	/**
-	 * Retrieve a key's cached data.
+	 * Cache data to a specific key.
 	 *
 	 * @param	string	cache key
 	 * @param   mixed	data to save

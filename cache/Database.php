@@ -1,5 +1,5 @@
 <?php
-class DatabaseCache extends Cache
+class DatabaseEngine extends Cache
 {
 
 

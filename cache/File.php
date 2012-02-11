@@ -1,5 +1,5 @@
 <?php
-class FileCache extends Cache
+class FileEngine extends Cache
 {
 
 
