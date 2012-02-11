@@ -137,7 +137,7 @@ class Database extends PDO
 		// Create a new instance if we don't have one.
 		if (self::$instance === true || $ok === false || $key !== self::$connKey) {
 
-			self::$connKey = $key;
+			self::$connKey  = $key;
 			self::$instance = new self();
 
 		}
