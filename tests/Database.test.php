@@ -125,6 +125,22 @@ class TestOfDatabase extends UnitTestCase {
 		
 	}
 
+	function testHighCountValue() {
+
+		$dbh = Database::getInstance();
+
+		for($i = 0; $i < 23; $i++) {
+
+			$sql = 'INSERT INTO test_table (name, password, email) VALUES (?, ?, ?)';
+			$dbh->query($sql, array( makeRandomString(), md5(makeRandomString()), makeRandomString(7).'@example.com'));
+
+		}
+
+		$num = $dbh->count('test_table');
+		$this->assertIdentical($num, 25);
+
+	}
+
 	function testEmptyTableAndCount() {
 		
 		$dbh = Database::getInstance();
