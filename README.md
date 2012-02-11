@@ -78,3 +78,5 @@ A simple database query might look like this:
 	$data = $dbh->query($sql, array('jyggen'), true);
 
 	print 'Welcome' . $data['username'];
+
+*Notice: This class currently requires you to have a Memcached instance running on localhost:11211. This issue will be fixed with the upcoming cache class.*
