@@ -16,7 +16,7 @@ class Database extends PDO
 	public static $connKey  = false;
 	public static $dsn      = array();
 	public static $settings = array();
-	public static $instance = false;
+	public static $instance = null;
 
 	public $cached      = 0;
 	public $connections = 0;
@@ -134,7 +134,10 @@ class Database extends PDO
 		$key = md5(serialize(self::$dsn));
 		
 		// Create a new instance if we don't have one.
-		if (self::$instance === false || (self::$instance instanceof Database) === false || $key !== self::$connKey) {
+		if (self::$instance === true
+			|| self::$instance instanceof Database === false
+			|| $key !== self::$connKey
+		) {
 
 			self::$connKey = $key;
 			self::$instance = new self();
