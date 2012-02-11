@@ -508,7 +508,7 @@ class Database extends PDO
 	/**
 	 * Return rows affected by the latest query, or the ID if it's an insert query.
 	 *
-	 * @param	object	PDO object
+	 * @param	object	PDO::prepare object
 	 * @param	string  SQL query
 	 * @return	integer
 	 */
@@ -541,7 +541,7 @@ class Database extends PDO
 	 * it will return an associative array while any other query will
 	 * return a numeric array with associative arrays inside.
 	 *
-	 * @param	object	PDO object
+	 * @param	object	PDO::prepare object
 	 * @param	string  SQL query
 	 * @return	array
 	 */
