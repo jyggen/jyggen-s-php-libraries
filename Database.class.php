@@ -28,6 +28,12 @@ class Database extends PDO
 	const CACHE_NORMAL     = 1;
 	const CACHE_AGGRESSIVE = 2;
 
+	/**
+	 * Creates a new connection towards the database
+	 * and the specified cache engine.
+	 *
+	 * @return	void
+	 */
 	public function __construct()
 	{
 
@@ -139,6 +145,12 @@ class Database extends PDO
 
     }
 
+	/**
+	 * Remove all data from the cache.
+	 *
+	 * @param	integer	number of seconds to delay the removal
+	 * @return	void
+	 */
 	public function flush($delay=0)
 	{
 
@@ -146,6 +158,13 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Remove a specific key from the cache.
+	 *
+	 * @param	string	key to remove
+	 * @param	integer	number of seconds to delay the removal
+	 * @return	void
+	 */
 	public function flushKey($key, $delay=0)
 	{
 
@@ -153,6 +172,12 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Check if a specific key exists in the cache.
+	 *
+	 * @param	string	key to check
+	 * @return	boolean
+	 */
 	public function cacheExists($key)
 	{
 
@@ -162,6 +187,12 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Retrieve a key's cached data.
+	 *
+	 * @param	string	key to retrieve
+	 * @return	mixed
+	 */
 	public function load($key)
 	{
 
@@ -175,6 +206,14 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Retrieve a key's cached data.
+	 *
+	 * @param	string	cache key
+	 * @param   mixed	data to save
+	 * @param   integer	how long the cache should be valid in seconds
+	 * @return	mixed
+	 */
 	public function save($key, $data, $ttl=0)
 	{
 
@@ -311,6 +350,14 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Update a table.
+	 *
+	 * @param	string	key to retrieve
+	 * @param   array   fields to update (field1 => val1, field2 => val2)
+	 * @param   array   where arguments (field1 => val1, field2 => val2)
+	 * @return	array
+	 */
 	public function update($table, $params, $where)
 	{
 
@@ -357,6 +404,13 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Count number of rows in a table.
+	 *
+	 * @param	string	table name
+	 * @param	array	where parameters (field1 => val1, field2 => val2)
+	 * @return	integer
+	 */
 	public function count($table, $params=array())
 	{
 
@@ -391,6 +445,13 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Check if the specified record exists in the table.
+	 *
+	 * @param	string	table name
+	 * @param   array	where parameters (field1 => val1, field2 => val2)
+	 * @return	boolean
+	 */
 	public function recordExistsInDB($table, $params)
 	{
 
@@ -399,6 +460,13 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Get the CacheID for a query.
+	 *
+	 * @param	string	query string
+	 * @param   array	query parameters
+	 * @return	string
+	 */
 	public function getCacheID($query, $parameters=array())
 	{
 
@@ -434,6 +502,12 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Throw an exception.
+	 *
+	 * @param	string	error message
+	 * @return	void
+	 */
 	protected function error($info)
 	{
 
