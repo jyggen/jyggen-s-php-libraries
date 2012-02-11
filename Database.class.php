@@ -132,12 +132,10 @@ class Database extends PDO
 		
 		// Generate an unique DSN key.
 		$key = md5(serialize(self::$dsn));
+		$ok  = self::$instance instanceof Database;
 		
 		// Create a new instance if we don't have one.
-		if (self::$instance === true
-			|| self::$instance instanceof Database === false
-			|| $key !== self::$connKey
-		) {
+		if (self::$instance === true || $ok === false || $key !== self::$connKey) {
 
 			self::$connKey = $key;
 			self::$instance = new self();
