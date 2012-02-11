@@ -54,7 +54,8 @@ The valid request to this resource would be http://example.com/api/test/view/id:
 
 Cache
 -----
-*TODO*
+
+The plan is to move all cache-specific code from the database class into this and add support for more engines since webhosts usually don't have memcached.
 
 Database
 --------
