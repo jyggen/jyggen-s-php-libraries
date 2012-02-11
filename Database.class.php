@@ -484,6 +484,12 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Make sure that the parameters var is an array.
+	 *
+	 * @param	mixed	query parameters
+	 * @return	void
+	 */
 	protected function paramToArray(&$parameters)
 	{
 
@@ -499,6 +505,13 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Return rows affected by the latest query, or the ID if it's an insert query.
+	 *
+	 * @param	object	PDO object
+	 * @param	string  SQL query
+	 * @return	integer
+	 */
 	protected function getReturnValue($sth, $sql)
 	{
 
@@ -523,6 +536,15 @@ class Database extends PDO
 
 	}
 
+	/**
+	 * Fetch the data of the latest insert query. On LIMIT 1 queries
+	 * it will return an associative array while any other query will
+	 * return a numeric array with associative arrays inside.
+	 *
+	 * @param	object	PDO object
+	 * @param	string  SQL query
+	 * @return	array
+	 */
 	protected function getReturnData($sth, $sql)
 	{
 
