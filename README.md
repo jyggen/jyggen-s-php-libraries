@@ -1,10 +1,13 @@
 jyggen's PHP Libraries
 ======================
 
+Introduction
+------------
+
+This readme is still work-in-progress, but I've added a few examples to get you started.
 
 API
 ---
-*TODO*
 
 A simple example. Create api.php in the web root:
 
@@ -59,9 +62,11 @@ The plan is to move all cache-specific code from the database class into this an
 
 Database
 --------
-*TODO*
 
 A simple database query might look like this:
+
+	<?php
+	require_once 'Database.class.php';
 
 	Database::$dsn['hostname'] = 'localhost';
 	Database::$dsn['database'] = 'my_application';
