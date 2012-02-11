@@ -272,15 +272,7 @@ class Database extends PDO
 
 			if ($sth !== false) {
 
-				if ($parameters === null) {
-
-					$parameters = array();
-
-				} else if (is_array($parameters) === false) {
-				
-					$parameters = array($parameters);
-				
-				}
+				self::paramToArray($parameters);
 
 				if ($sth->execute($parameters) === false) {
 
@@ -292,15 +284,7 @@ class Database extends PDO
 
 					if ($return === true) {
 
-						if (substr($sql, -7) === 'LIMIT 1') {
-
-							$data = $sth->fetch(parent::FETCH_ASSOC);
-
-						} else {
-
-							$data = $sth->fetchAll(parent::FETCH_ASSOC);
-
-						}
+						$data = self::getReturnData($sth, $sql);
 
 						if ($ttl !== false) {
 
@@ -312,23 +296,7 @@ class Database extends PDO
 
 					} else {
 
-						// Return row count(?) on SELECT query.
-						if (substr($sql, 0, 6) === 'SELECT') {
-
-							$num = (int) $sth->fetchColumn();
-						
-						// Return ID on INSERT query.
-						} else if (substr($sql, 0, 6) === 'INSERT') {
-
-							$num = parent::lastInsertId();
-						
-						// Return row count.
-						} else {
-
-							$num = $sth->rowCount();
-
-						}
-
+						$num = self::getReturnValue($sth, $sql);
 						return $num;
 
 					}//end if
@@ -513,6 +481,62 @@ class Database extends PDO
 	{
 
 		throw new DatabaseException($info[2]);
+
+	}
+
+	protected function paramToArray(&$parameters)
+	{
+
+		if ($parameters === null) {
+
+			$parameters = array();
+
+		} else if (is_array($parameters) === false) {
+
+			$parameters = array($parameters);
+
+		}
+
+	}
+
+	protected function getReturnValue($sth, $sql)
+	{
+
+		// Return row count(?) on SELECT query.
+		if (substr($sql, 0, 6) === 'SELECT') {
+
+			$num = (int) $sth->fetchColumn();
+
+		// Return ID on INSERT query.
+		} else if (substr($sql, 0, 6) === 'INSERT') {
+
+			$num = parent::lastInsertId();
+
+		// Return row count.
+		} else {
+
+			$num = $sth->rowCount();
+
+		}
+
+		return $num;
+
+	}
+
+	protected function getReturnData($sth, $sql)
+	{
+
+		if (substr($sql, -7) === 'LIMIT 1') {
+
+			$data = $sth->fetch(parent::FETCH_ASSOC);
+
+		} else {
+
+			$data = $sth->fetchAll(parent::FETCH_ASSOC);
+
+		}
+
+		return $data;
 
 	}
 

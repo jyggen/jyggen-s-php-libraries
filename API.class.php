@@ -261,7 +261,7 @@ class API
 
                 }
 
-            } else {
+			} else {
 
                 self::$_data = null;
 
