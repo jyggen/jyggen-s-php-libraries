@@ -134,7 +134,7 @@ class Database extends PDO
 		$key = md5(serialize(self::$dsn));
 		
 		// Create a new instance if we don't have one.
-		if (self::$instance === false || $key !== self::$connKey) {
+		if (self::$instance === false || self::$instance instanceof Database || $key !== self::$connKey) {
 
 			self::$connKey = $key;
 			self::$instance = new self();
