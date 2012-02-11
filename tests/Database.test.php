@@ -7,11 +7,11 @@ class TestOfDatabase extends UnitTestCase {
 	
 	function testConnectionAndInstances() {
     
-		Database::$settings['hostname'] = 'localhost';
-		Database::$settings['database'] = 'jyggen_dev';
-		Database::$settings['username'] = 'jyggen';
-		Database::$settings['password'] = 'I"O$Ka7Be0N9';
-		Database::$settings['cachelvl'] = Database::CACHE_NORMAL;
+		Database::$dsn['hostname'] = 'localhost';
+		Database::$dsn['database'] = 'jyggen_dev';
+		Database::$dsn['username'] = 'jyggen';
+		Database::$dsn['password'] = 'I"O$Ka7Be0N9';
+		Database::$dsn['cachelvl'] = Database::CACHE_NORMAL;
 		
 		$dbh1 = Database::getInstance();
 		$dbh2 = Database::getInstance();
@@ -94,7 +94,7 @@ class TestOfDatabase extends UnitTestCase {
 		$this->assertIdentical($dat2[0]['name'], $this->username2);
 		$this->assertTrue($exists);
 
-		Database::$settings['cachelvl'] = Database::CACHE_AGGRESSIVE;
+		Database::$dsn['cachelvl'] = Database::CACHE_AGGRESSIVE;
 		$dbh->flushKey($dbh->getCacheID('SELECT * FROM test_table WHERE name = ? LIMIT 1'));
 
 		$exists = $dbh->cacheExists($dbh->getCacheID('SELECT * FROM test_table WHERE name = ? LIMIT 1', array($this->username2_new)));
