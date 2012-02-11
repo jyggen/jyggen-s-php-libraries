@@ -1,7 +1,7 @@
 <?php
 require_once 'simpletest/autorun.php';
-require_once '/home/jyggen/libs/Database.class.php';
-require_once '/home/jyggen/libs/Cache.class.php';
+require_once '../Database.class.php';
+require_once '../Cache.class.php';
 
 class TestOfDatabase extends UnitTestCase {
 	
