@@ -43,7 +43,8 @@ class API
 
         }
 
-        return self::handleRequest(explode('/', substr($path, 1)), $post);
+		$response = self::handleRequest(explode('/', substr($path, 1)), $post);
+        return $response;
 
     }
 
@@ -53,15 +54,17 @@ class API
         switch(self::$_response) {
 
 			case 'array':
-				return self::responseArray($msg);
+				$response = self::responseArray($msg);
 			break;
 
 			case 'json':
 			default:
-				return self::responseJson($msg, $code);
+				$response = self::responseJson($msg, $code);
 			break;
 
         }
+
+		return $response;
 
     }
 
@@ -173,7 +176,8 @@ class API
 
 		}
 
-        return call_user_func(array(self::$_resource, self::$_method));
+        $response = call_user_func(array(self::$_resource, self::$_method));
+		return $response;
 
     }
 
@@ -295,7 +299,8 @@ class API
 
 		}
 
-        return array_key_exists($arg, self::$_args);
+		$result = array_key_exists($arg, self::$_args);
+        return $result;
 
     }
 
@@ -308,7 +313,8 @@ class API
 
 		}
 
-        return array_key_exists($key, self::$_data);
+        $result = array_key_exists($key, self::$_data);
+		return $result;
 
     }
 	
@@ -326,8 +332,9 @@ class API
 		foreach ($quant as $unit => $mag) {
 
 			if (doubleval($bytes) >= $mag) {
-			
-				return sprintf('%01.'.$decimals.'f', ($bytes / $mag)).' '.$unit;
+
+				$bytes = sprintf('%01.'.$decimals.'f', ($bytes / $mag)).' '.$unit;
+				return $bytes;
 			
 			}
 
@@ -438,7 +445,8 @@ class API
 		
 		}
 
-		return (array_sum($array) / $count);
+		$avg = (array_sum($array) / $count);
+		return $avg;
 
     }
 
