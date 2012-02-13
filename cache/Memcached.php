@@ -61,7 +61,16 @@ class MemcachedEngine extends Cache
 	{
 
 		$exists = $this->engine->get($key, MEMCACHE_COMPRESSED);
-		return ($exists === false) ? false : true;
+		
+		if ($exists === false) {
+
+			return false;
+
+		} else {
+
+			return true;
+
+		}
 
 	}
 
@@ -75,7 +84,8 @@ class MemcachedEngine extends Cache
 	{
 
 		$data = $this->engine->get($key, MEMCACHE_COMPRESSED);
-		$data = unserialize($data, true);
+		$data = gzinflate($data);
+		$data = unserialize($data);
 
 		return $data;
 

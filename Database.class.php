@@ -66,8 +66,14 @@ class Database extends PDO
 
 		try {
 
-			$this->_cache = new Memcache;
-			$this->_cache->connect('localhost', 11211);
+			// Legacy fallback to prevent old applications from crashing.
+			if (class_exists('Cache') === false) {
+
+				include_once __DIR__.'/Cache.class.php';
+
+			}
+
+			$this->_cache = Cache::loadEngine('Memcached');
 			$this->connections++;
 
 		} catch (Exception $e) {
@@ -169,7 +175,7 @@ class Database extends PDO
 	public function flushKey($key, $delay=0)
 	{
 
-		$this->_cache->delete($key, $delay);
+		$this->_cache->flushKey($key, $delay);
 
 	}
 
@@ -182,9 +188,8 @@ class Database extends PDO
 	public function cacheExists($key)
 	{
 
-		$success = $this->_cache->get($key, MEMCACHE_COMPRESSED);
-
-		return ($success === false) ? false : true;
+		$exists = $this->_cache->exists($key);
+		return $exists;
 
 	}
 
@@ -198,12 +203,8 @@ class Database extends PDO
 	{
 
 		$this->cached++;
-		$json = json_decode(
-			gzinflate($this->_cache->get($key, MEMCACHE_COMPRESSED)),
-			true
-		);
-
-		return $json;
+		$data = $this->_cache->get($key);
+		return $data;
 
 	}
 
@@ -218,30 +219,8 @@ class Database extends PDO
 	public function save($key, $data, $ttl=0)
 	{
 
-		$data = json_encode($data);
-		$data = gzdeflate($data, 9);
-
-		if (mb_strlen($data, 'UTF-8') < 1048576) {
-
-			$cache = $this->_cache->set($key, $data, MEMCACHE_COMPRESSED, $ttl);
-
-			if ($cache === false) {
-
-				trigger_error('Could not cache '.$key, E_USER_NOTICE);
-				return false;
-
-			} else {
-
-				return true;
-
-			}
-
-		} else {
-
-			$this->error('Could not cache '.$key.' (1MB limit)');
-			return false;
-
-		}//end if
+		$success = $this->_cache->set($key, $data, $ttl);
+		return $success;
 
 	}
 	
@@ -452,7 +431,7 @@ class Database extends PDO
 
 			case 1:
 				$hash = md5(
-					json_encode(
+					serialize(
 						array(
 						 'query'      => $query,
 						 'parameters' => $parameters,
