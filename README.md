@@ -11,7 +11,6 @@ API
 
 A simple example. Create api.php in the web root:
 
-	<?php
 	require_once 'API.class.php';
 	API::call($_SERVER['PATH_INFO']);
 
@@ -24,7 +23,6 @@ Rewrite any requests towards /api to api.php. By default the API class' looking 
 
 Every resource should be located in api/ with the prefix res_. The file in the folder structure above (res_test.php) could look like this:
 
-	<?php
 	class ResourceTest extends API
 	{
 
@@ -65,7 +63,6 @@ Database
 
 A simple database query might look like this:
 
-	<?php
 	require_once 'Database.class.php';
 
 	Database::$dsn['hostname'] = 'localhost';

@@ -238,6 +238,8 @@ class Database extends PDO
 	public function query($sql, $parameters=null, $return=false, $ttl=300)
 	{
 
+		self::paramToArray($parameters);
+
 		$sql     = trim($sql);
 		$cacheID = $this->getCacheID($sql, $parameters);
 		
@@ -250,8 +252,6 @@ class Database extends PDO
 			$sth = parent::prepare($sql);
 
 			if ($sth !== false) {
-
-				self::paramToArray($parameters);
 
 				if ($sth->execute($parameters) === false) {
 
@@ -479,6 +479,18 @@ class Database extends PDO
 		} else if (is_array($parameters) === false) {
 
 			$parameters = array($parameters);
+
+		}
+
+		foreach ($parameters as &$param) {
+
+			$check = $param instanceof SimpleXMLElement;
+			
+			if ($check === true) {
+
+				$param = (string) $param;
+
+			}
 
 		}
 
