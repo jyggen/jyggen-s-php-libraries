@@ -40,7 +40,7 @@ class Database extends PDO
 		try {
 
 			$dsn = sprintf(
-				'mysql:dbname=%s;host=%s;charset=UTF-8;',
+				'mysql:dbname=%s;host=%s;charset=utf8;',
 				self::$dsn['database'],
 				self::$dsn['hostname']
 			);

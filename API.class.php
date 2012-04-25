@@ -344,29 +344,6 @@ class API
 
 	}
 
-	private static function _subKeyNotArray($a, $b, $key)
-	{
-
-		if (isset($a[$key]) === false || isset($b[$key]) === false) {
-
-			throw new Exception('sort on non-existent keys');
-
-		} else if ($a[$key] === $b[$key]) {
-
-			return 0;
-
-		} else if (($asc === SORT_ASC ^ $a[$key] < $b[$key])) {
-
-			return 1;
-
-		} else {
-
-			return -1;
-
-		}
-
-	}
-
     protected static function orderBySubkey(&$array, $key, $asc=SORT_ASC)
     {
 
@@ -389,8 +366,23 @@ class API
 
 				if (is_array($key) === false) {
 
-					$return = self::_subKeyNotArray($a, $b, $key);
-					return $return;
+					if (isset($a[$key]) === false || isset($b[$key]) === false) {
+
+						throw new Exception('sort on non-existent keys');
+
+					} else if ($a[$key] === $b[$key]) {
+
+						return 0;
+
+					} else if (($asc === SORT_ASC ^ $a[$key] < $b[$key])) {
+
+						return 1;
+
+					} else {
+
+						return -1;
+
+					}
 
 				} else {
 
