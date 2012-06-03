@@ -317,7 +317,7 @@ class API
 		return $result;
 
     }
-	
+
 	protected static function convertByte($bytes=0, $decimals=0)
 	{
 
@@ -335,7 +335,7 @@ class API
 
 				$bytes = sprintf('%01.'.$decimals.'f', ($bytes / $mag)).' '.$unit;
 				return $bytes;
-			
+
 			}
 
 		}
@@ -432,13 +432,13 @@ class API
 
     protected static function calculateAverage($array)
     {
-		
+
 		$count = count($array);
-		
+
 		if ($count === 0) {
-		
+
 			return 0;
-		
+
 		}
 
 		$avg = (array_sum($array) / $count);
@@ -561,7 +561,7 @@ class API
 		}
 
 		return $guid;
-		
+
 	}
 
 }

@@ -61,7 +61,7 @@ class MemcachedEngine extends Cache
 	{
 
 		$exists = $this->engine->get($key, MEMCACHE_COMPRESSED);
-		
+
 		if ($exists === false) {
 
 			return false;

@@ -83,7 +83,7 @@ class Database extends PDO
 		}
 
 	}
-	
+
 	/**
 	 * Tries to retrieve any existing connection to
 	 * the database. Otherwise it'll create a new one
@@ -93,53 +93,53 @@ class Database extends PDO
 	 */
 	public static function getInstance()
 	{
-		
+
 		// Legacy fallback. Old code might still use $settings instead of $dsn.
 		if (empty(self::$settings) === false && empty(self::$dsn) === true) {
-		
+
 			self::$dsn = &self::$settings;
-		
+
 		}
-		
+
 		// Check if DSN is empty.
 		if (empty(self::$dsn) === true) {
 
 			throw new DatabaseException('No DSN values supplied');
-		
+
 		}
-		
+
 		// Check if database is missing from DSN.
 		if (array_key_exists('database', self::$dsn) === false) {
-		
+
 			throw new DatabaseException('Missing DSN value: database');
-		
+
 		}
-		
+
 		// Check if hostname is missing from DSN.
 		if (array_key_exists('hostname', self::$dsn) === false) {
-		
+
 			throw new DatabaseException('Missing DSN value: hostname');
-		
+
 		}
-		
+
 		// Check if username is missing from DSN.
 		if (array_key_exists('username', self::$dsn) === false) {
-		
+
 			throw new DatabaseException('Missing DSN value: username');
-		
+
 		}
-		
+
 		// Check if password is missing from DSN.
 		if (array_key_exists('password', self::$dsn) === false) {
-		
+
 			throw new DatabaseException('Missing DSN value: password');
-		
+
 		}
-		
+
 		// Generate an unique DSN key.
 		$key = md5(serialize(self::$dsn));
 		$ok  = self::$instance instanceof Database;
-		
+
 		// Create a new instance if we don't have one.
 		if (self::$instance === true || $ok === false || $key !== self::$connKey) {
 
@@ -223,7 +223,7 @@ class Database extends PDO
 		return $success;
 
 	}
-	
+
 	/**
 	 * Tries to retrieve any existing connection to
 	 * the database. Otherwise it'll create a new one
@@ -242,7 +242,7 @@ class Database extends PDO
 
 		$sql     = trim($sql);
 		$cacheID = $this->getCacheID($sql, $parameters);
-		
+
 		// Check if the cached data should be returned.
 		if ($return === false
 			|| $ttl === false
@@ -485,7 +485,7 @@ class Database extends PDO
 		foreach ($parameters as &$param) {
 
 			$check = $param instanceof SimpleXMLElement;
-			
+
 			if ($check === true) {
 
 				$param = (string) $param;
@@ -557,5 +557,5 @@ class Database extends PDO
 
 class DatabaseException extends Exception
 {
-	
+
 }
