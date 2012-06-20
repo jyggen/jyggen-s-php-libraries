@@ -57,7 +57,7 @@ abstract class Cache
 	 */
 	public function flush($delay)
 	{
-		
+
 	}
 
 	/**
