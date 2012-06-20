@@ -54,7 +54,7 @@ class Database extends PDO
 
 		} catch (PDOException $e) {
 
-			$this->error($e->getMessage());
+			throw new DatabaseException($e->getMessage());
 
 		}//end try
 
@@ -78,7 +78,7 @@ class Database extends PDO
 
 		} catch (Exception $e) {
 
-			$this->error($e->getMessage());
+			throw new DatabaseException($e->getMessage());
 
 		}
 
